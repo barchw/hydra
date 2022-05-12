@@ -1,31 +1,36 @@
 replicaCount: 1
 
-rbacJob:
-  image:
-    repository: eu.gcr.io/kyma-project/test-infra/alpine-kubectl
-    tag: "v20190325-ff66a3a"
+config:
+  # SyncPeriod determines the minimum frequency at which watched resources are
+  # reconciled. A lower period will correct entropy more quickly, but reduce
+  # responsiveness to change if there are many watched resources.
+  syncPeriod: 10h
+  # Name of existingSecret for hydra, if used
+  # hydraSecret: secret
+
+globalAccess: false
 
 #The Controller have CREATE and READ access to all Secrets in the namespaces listed below.
 enabledNamespaces: []
 
 image:
-  repository: oryd/hydra-maester
-  tag: v0.0.19
   # Image pull policy
   pullPolicy: IfNotPresent
-
-## Pod priority
-## https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
-# priorityClassName: ""
 
 adminService:
   name:
   port:
 
 forwardedProto:
-    
+
+port:
+  metrics: 8080
+
 deployment:
-  resources: {}
+  strategy: {} # Read more: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+
+  resources:
+    {}
     #  We usually recommend not to specify default resources and to leave this as a conscious
     #  choice for the user. This also increases chances charts run on environments with little
     #  resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -48,8 +53,15 @@ deployment:
   annotations: {}
   podLabels: {}
 
-job:
-  podLabels: {}
+  livenessProbe:
+    initialDelaySeconds: 50
+    timeoutSeconds: 1
+    periodSeconds: 10
+
+  readinessProbe:
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 2
 
 # Configure node affinity
 affinity: {}

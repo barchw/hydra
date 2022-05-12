@@ -67,13 +67,13 @@ memory
 {{- end -}}
 
 {{/*
-Generate the name of the secret resource containing secrets
+Get the name of the secret resource containing secrets
 */}}
 {{- define "hydra.secretname" -}}
-{{- if .Values.hydra.existingSecret -}}
-{{- .Values.hydra.existingSecret -}}
+{{- if .Values.hydra.existingSecret }}
+    {{- printf "%s" .Values.hydra.existingSecret -}}
 {{- else -}}
-{{ include "hydra.fullname" . }}
+    {{- printf "%s" (include "hydra.fullname" .) -}}
 {{- end -}}
 {{- end -}}
 
@@ -100,13 +100,24 @@ Generate the secrets.cookie value
 {{- end -}}
 
 {{/*
+Return true if a secret object should be created
+*/}}
+{{- define "hydra.createSecret" -}}
+{{- if .Values.hydra.existingSecret }}
+{{- else -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Generate the configmap data, redacting secrets
 */}}
 {{- define "hydra.configmap" -}}
-{{- $config := unset .Values.hydra.config "dsn" -}}
-{{- $config := unset $config "secrets" -}}
-{{- $config := unset $config "secretAnnotations" -}}
-{{- toYaml $config -}}
+{{- $configCopy := .Values.hydra.config | mustDeepCopy -}}
+{{- $result := unset $configCopy "dsn" -}}
+{{- $result := unset $result "secrets" -}}
+{{- $result := unset $result "secretAnnotations" -}}
+{{- toYaml $result -}}
 {{- end -}}
 
 {{/*
